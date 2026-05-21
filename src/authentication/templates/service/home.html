@@ -1,0 +1,18 @@
+{% extends "layout/auth_base.html" %}
+
+{% block title %}Panel usługi | Szyfr24{% endblock %}
+
+{% block content %}
+<span class="status-badge">Konto aktywne</span>
+<h2>Panel usługi szyfrowania</h2>
+<div class="message">
+    <p class="box-msg">Jesteś zalogowany w Szyfr24. To miejsce startowe dla dostępu do narzędzi ochrony danych.</p>
+    {% if request.user.is_staff %}
+        <a href="{% url 'users:user_list' %}" class="btn btn-primary btn-block">Przejdź do panelu operatora</a>
+    {% endif %}
+    <form method="post" action="{% url 'authentication:logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-secondary btn-block">Wyloguj</button>
+    </form>
+</div>
+{% endblock %}

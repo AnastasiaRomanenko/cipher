@@ -1,0 +1,75 @@
+{% extends "users/panel_base.html" %}
+
+{% block title %}Użytkownicy | Szyfr24{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Użytkownicy usługi</h1>
+        <p class="muted">Zarządzanie dostępem do kont w systemie szyfrowania.</p>
+    </div>
+    <a class="btn btn-success" href="{% url 'users:user_create' %}">Utwórz użytkownika</a>
+</div>
+
+<section class="card">
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Użytkownik</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Uprawnienia</th>
+                    <th>Akcje</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for managed_user in managed_users %}
+                    <tr>
+                        <td>{{ managed_user.id }}</td>
+                        <td>{{ managed_user.get_full_name|default:"-" }}</td>
+                        <td>{{ managed_user.email }}</td>
+                        <td>
+                            {% if managed_user.is_active %}
+                                <span class="badge badge-success">Aktywny</span>
+                            {% else %}
+                                <span class="badge badge-warning">Oczekuje</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if managed_user.is_superuser %}
+                                Operator główny
+                            {% elif managed_user.is_staff %}
+                                Operator
+                            {% else %}
+                                Użytkownik
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="actions">
+                                <a class="btn btn-default" href="{% url 'users:user_profile' managed_user.id %}">Podgląd</a>
+                                <a class="btn btn-default" href="{% url 'users:user_update' managed_user.id %}">Edytuj</a>
+                                {% if not managed_user.is_active %}
+                                    <form method="post" action="{% url 'users:user_invite' managed_user.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-primary">Wyślij zaproszenie</button>
+                                    </form>
+                                {% endif %}
+                                <form method="post" action="{% url 'users:user_delete' managed_user.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger" onclick="return confirm('Usunąć użytkownika usługi szyfrowania?')">Usuń</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6">Brak użytkowników.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

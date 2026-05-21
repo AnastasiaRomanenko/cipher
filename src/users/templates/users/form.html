@@ -1,0 +1,89 @@
+{% extends "users/panel_base.html" %}
+
+{% block title %}Użytkownik | Szyfr24{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Użytkownik usługi</h1>
+        <p class="muted">Dane konta używanego do dostępu do szyfrowania.</p>
+    </div>
+</div>
+
+<section class="card">
+    <form method="post">
+        {% csrf_token %}
+        {% for error in form.non_field_errors %}
+            <p class="field-errors">{{ error }}</p>
+        {% endfor %}
+        <div class="form-grid">
+            <div>
+                <div class="form-group">
+                    <label for="userform-firstname">Imię</label>
+                    <input type="text" id="userform-firstname" class="form-control" name="first_name" maxlength="255" value="{{ form.first_name.value|default:'' }}">
+                    <div class="field-errors">{{ form.first_name.errors }}</div>
+                </div>
+                <div class="form-group">
+                    <label for="userform-lastname">Nazwisko</label>
+                    <input type="text" id="userform-lastname" class="form-control" name="last_name" maxlength="255" value="{{ form.last_name.value|default:'' }}">
+                    <div class="field-errors">{{ form.last_name.errors }}</div>
+                </div>
+            </div>
+            <div>
+                <div class="form-group">
+                    <label for="userform-email">Email</label>
+                    <input type="email" id="userform-email" class="form-control" name="email" maxlength="255" required value="{{ form.email.value|default:'' }}">
+                    <div class="field-errors">{{ form.email.errors }}</div>
+                </div>
+                <div class="form-group">
+                    <label for="userform-password1">Hasło</label>
+                    <input type="password" id="userform-password1" class="form-control pass-value" name="password1" maxlength="255">
+                    <div class="field-errors">{{ form.password1.errors }}</div>
+                </div>
+                <div class="form-group">
+                    <label for="userform-password2">Powtórz hasło</label>
+                    <input type="password" id="userform-password2" class="form-control pass-value" name="password2" maxlength="255">
+                    <div class="field-errors">{{ form.password2.errors }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="btn-row">
+            <button class="btn btn-default" type="button" id="generatePassBtn">Wygeneruj hasło</button>
+            <button class="btn btn-default" type="button" id="showPass">Pokaż hasło</button>
+            <a href="{% url 'users:user_list' %}" class="btn btn-default">Anuluj</a>
+            <button type="submit" class="btn btn-success">Zapisz</button>
+        </div>
+    </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const passwordFields = document.querySelectorAll(".pass-value");
+    const firstPassword = document.getElementById("userform-password1");
+    const showPass = document.getElementById("showPass");
+
+    document.getElementById("generatePassBtn").addEventListener("click", function () {
+        const alphabet = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        let password = "";
+        const values = new Uint32Array(14);
+        window.crypto.getRandomValues(values);
+        values.forEach(function (value) {
+            password += alphabet[value % alphabet.length];
+        });
+        passwordFields.forEach(function (field) {
+            field.value = password;
+            field.type = "text";
+        });
+        showPass.textContent = "Ukryj hasło";
+    });
+
+    showPass.addEventListener("click", function () {
+        const nextType = firstPassword.type === "password" ? "text" : "password";
+        passwordFields.forEach(function (field) {
+            field.type = nextType;
+        });
+        showPass.textContent = nextType === "password" ? "Pokaż hasło" : "Ukryj hasło";
+    });
+</script>
+{% endblock %}

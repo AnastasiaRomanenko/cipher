@@ -1,0 +1,11 @@
+{% extends "layout/auth_base.html" %}
+
+{% block title %}Nieprawidłowy kod | Szyfr24{% endblock %}
+
+{% block content %}
+<h2>Nieprawidłowy kod</h2>
+<div class="message">
+    <p class="box-msg">Kod aktywacyjny jest nieprawidłowy albo został już wykorzystany.</p>
+    <a href="{% url 'authentication:registration' %}" class="btn btn-primary btn-block">Utwórz konto ponownie</a>
+</div>
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends "layout/auth_base.html" %}
+
+{% block title %}Logowanie | Szyfr24{% endblock %}
+
+{% block head_extra %}
+<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="tabs" role="tablist" aria-label="Typ logowania">
+    <button class="tab-button {% if active_tab != 'admin' %}active{% endif %}" type="button" data-tab="user">Konto usługi</button>
+    <button class="tab-button {% if active_tab == 'admin' %}active{% endif %}" type="button" data-tab="admin">Panel operatora</button>
+</div>
+
+<div class="tab-pane {% if active_tab != 'admin' %}active{% endif %}" id="tab-user">
+    <h2>Logowanie do usługi</h2>
+    <p class="lead">Uzyskaj dostęp do panelu szyfrowania danych.</p>
+    <form id="login-form-user" method="post">
+        {% csrf_token %}
+        {% for error in user_form.non_field_errors %}
+            <p class="error">{{ error }}</p>
+        {% endfor %}
+        <div class="form-group">
+            {{ user_form.login }}
+            {% for error in user_form.login.errors %}
+                <p class="error">{{ error }}</p>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            {{ user_form.password }}
+            {% for error in user_form.password.errors %}
+                <p class="error">{{ error }}</p>
+            {% endfor %}
+        </div>
+        <label><input type="checkbox" name="remember_me" value="1" checked> Zapamiętaj mnie</label>
+        <div id="g-recaptcha-user" class="g-recaptcha"></div>
+        <div class="actions">
+            <button type="submit" class="btn btn-primary btn-block" name="login_type" value="user">Zaloguj się</button>
+            <a href="{% url 'authentication:registration' %}" class="btn btn-secondary btn-block">Utwórz konto</a>
+            <a href="{% url 'authentication:password_reset' %}" class="btn btn-secondary btn-block">Nie pamiętasz hasła?</a>
+        </div>
+    </form>
+</div>
+
+<div class="tab-pane {% if active_tab == 'admin' %}active{% endif %}" id="tab-admin">
+    <h2>Panel operatora</h2>
+    <p class="lead">Logowanie dla osób zarządzających usługą szyfrowania.</p>
+    <form id="login-form-admin" method="post">
+        {% csrf_token %}
+        {% for error in admin_form.non_field_errors %}
+            <p class="error">{{ error }}</p>
+        {% endfor %}
+        <div class="form-group">
+            {{ admin_form.login }}
+            {% for error in admin_form.login.errors %}
+                <p class="error">{{ error }}</p>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            {{ admin_form.password }}
+            {% for error in admin_form.password.errors %}
+                <p class="error">{{ error }}</p>
+            {% endfor %}
+        </div>
+        <label><input type="checkbox" name="remember_me" value="1" checked> Zapamiętaj mnie</label>
+        <div id="g-recaptcha-admin" class="g-recaptcha"></div>
+        <div class="actions">
+            <button type="submit" class="btn btn-primary btn-block" name="login_type" value="admin">Zaloguj się</button>
+            <a href="{% url 'authentication:registration' %}" class="btn btn-secondary btn-block">Utwórz konto</a>
+            <a href="{% url 'authentication:password_reset' %}" class="btn btn-secondary btn-block">Nie pamiętasz hasła?</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let widgetUser = null;
+    let widgetAdmin = null;
+    let submittingUser = false;
+    let submittingAdmin = false;
+
+    function renderRecaptcha(tabName) {
+        if (typeof grecaptcha === "undefined") return;
+        if (tabName === "user" && widgetUser === null) {
+            widgetUser = grecaptcha.render("g-recaptcha-user", { sitekey: "{{ site_key }}" });
+        }
+        if (tabName === "admin" && widgetAdmin === null) {
+            widgetAdmin = grecaptcha.render("g-recaptcha-admin", { sitekey: "{{ site_key }}" });
+        }
+    }
+
+    function onloadCallback() {
+        renderRecaptcha("{% if active_tab == 'admin' %}admin{% else %}user{% endif %}");
+    }
+
+    document.querySelectorAll(".tab-button").forEach(function (button) {
+        button.addEventListener("click", function () {
+            const tabName = button.dataset.tab;
+            document.querySelectorAll(".tab-button").forEach(function (item) {
+                item.classList.toggle("active", item === button);
+            });
+            document.querySelectorAll(".tab-pane").forEach(function (pane) {
+                pane.classList.toggle("active", pane.id === "tab-" + tabName);
+            });
+            renderRecaptcha(tabName);
+        });
+    });
+
+    document.getElementById("login-form-user").addEventListener("submit", function (event) {
+        event.preventDefault();
+        if (submittingUser) return;
+        const response = widgetUser === null ? "" : grecaptcha.getResponse(widgetUser);
+        if (!response) {
+            alert("Potwierdź, że nie jesteś robotem");
+            return;
+        }
+        submittingUser = true;
+        this.querySelector('button[type="submit"]').disabled = true;
+        this.submit();
+    });
+
+    document.getElementById("login-form-admin").addEventListener("submit", function (event) {
+        event.preventDefault();
+        if (submittingAdmin) return;
+        const response = widgetAdmin === null ? "" : grecaptcha.getResponse(widgetAdmin);
+        if (!response) {
+            alert("Potwierdź, że nie jesteś robotem");
+            return;
+        }
+        submittingAdmin = true;
+        this.querySelector('button[type="submit"]').disabled = true;
+        this.submit();
+    });
+</script>
+{% endblock %}

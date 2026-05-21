@@ -1,0 +1,25 @@
+<p>
+    Witaj w Szyfr24, {{ user.email }}!
+</p>
+
+<p>
+    Twój kod TOTP do potwierdzenia zaproszenia do usługi szyfrowania:
+</p>
+
+<p>
+    <strong style="font-size: 24px; letter-spacing: 4px;">{{ code }}</strong>
+</p>
+
+<p>
+    Kod jest ważny przez {{ code_expiry_minutes }} minut.
+</p>
+
+<p>
+    Wpisz kod na stronie:
+    <br><a href="{{ verify_url }}">{{ verify_url }}</a>
+</p>
+
+<p>
+    Z poważaniem,
+    <br>Zespół Szyfr24
+</p>
