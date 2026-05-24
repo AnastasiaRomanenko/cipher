@@ -1,0 +1,33 @@
+{% extends "safe/base.html" %}
+
+{% block title %}Pobierz plik | Szyfr24{% endblock %}
+
+{% block content %}
+<div class="card card-narrow">
+    <h2>Pobierz zaszyfrowany plik</h2>
+    <p class="muted" style="margin-bottom:8px;">
+        Plik: <strong>{{ file.original_name }}</strong>
+        &nbsp;({{ file.file_size }} B, dodano {{ file.uploaded_at|date:"d.m.Y H:i" }})
+    </p>
+    <p class="muted" style="margin-bottom:20px;">
+        Podaj hasło sejfu — plik zostanie odszyfrowany i pobrany bezpośrednio do Twojego urządzenia.
+        Jeśli plik był modyfikowany, zostaniesz natychmiast powiadomiony i pobieranie zostanie anulowane.
+    </p>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="{{ form.password.id_for_label }}">Hasło sejfu</label>
+            <input class="form-control" type="password" name="{{ form.password.html_name }}"
+                   id="{{ form.password.id_for_label }}" autocomplete="current-password" autofocus required>
+            {% if form.password.errors %}<div class="field-errors">{{ form.password.errors }}</div>{% endif %}
+        </div>
+
+        <div class="btn-row">
+            <button class="btn btn-primary" type="submit">Odszyfruj i pobierz</button>
+            <a class="btn btn-secondary" href="{% url 'safe:index' %}">Anuluj</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

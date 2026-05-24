@@ -20,4 +20,5 @@ from django.urls import include, path
 urlpatterns = [
     path("", include("src.authentication.urls", namespace="authentication")),
     path("users/", include("src.users.urls", namespace="users")),
+    path("safe/", include("src.safe.urls", namespace="safe")),
 ]

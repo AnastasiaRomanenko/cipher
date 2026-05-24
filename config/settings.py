@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "src.authentication",
     "src.users",
+    "src.safe",
     "config_celery",
 ]
 

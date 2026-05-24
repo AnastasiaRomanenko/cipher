@@ -1,0 +1,28 @@
+{% extends "safe/base.html" %}
+
+{% block title %}Odblokuj sejf | Szyfr24{% endblock %}
+
+{% block content %}
+<div class="card card-narrow">
+    <h2>🔒 Sejf zablokowany</h2>
+    <p class="muted" style="margin-bottom:20px;">
+        Podaj hasło sejfu, aby uzyskać dostęp do zaszyfrowanych plików.
+    </p>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+            <input class="form-control" type="password" name="{{ form.password.html_name }}"
+                   id="{{ form.password.id_for_label }}" autocomplete="current-password" autofocus required>
+            {% if form.password.errors %}<div class="field-errors">{{ form.password.errors }}</div>{% endif %}
+        </div>
+
+        <div class="btn-row">
+            <button class="btn btn-primary" type="submit">Odblokuj sejf</button>
+            <a class="btn btn-secondary" href="{% url 'safe:set_password' %}">Zmień hasło sejfu</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
