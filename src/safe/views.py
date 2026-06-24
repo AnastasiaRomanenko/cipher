@@ -6,13 +6,18 @@ from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .crypto import (
+    ChecksumMismatch,
     TamperingDetected,
+    compute_plaintext_checksum,
     decrypt_file,
     encrypt_file,
+    hash_file_password,
     hash_vault_password,
+    verify_file_password,
+    verify_plaintext_checksum,
     verify_vault_password,
 )
-from .forms import SetVaultPasswordForm, UploadFileForm, VaultUnlockForm
+from .forms import DownloadFileForm, SetVaultPasswordForm, UploadFileForm, VaultUnlockForm
 from .models import SafeFile, VaultConfig
 
 MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # 50 MB
@@ -20,7 +25,6 @@ MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # 50 MB
 
 @login_required
 def vault_index(request):
-    """Landing page: shows either 'set password' prompt, unlock form, or file list."""
     try:
         config = request.user.vault_config
     except VaultConfig.DoesNotExist:
@@ -36,7 +40,6 @@ def vault_index(request):
 
 @login_required
 def set_password(request):
-    """Create or replace the vault password."""
     if request.method == "POST":
         form = SetVaultPasswordForm(request.POST)
         if form.is_valid():
@@ -59,7 +62,6 @@ def set_password(request):
 
 @login_required
 def unlock(request):
-    """Verify the vault password and mark the session as unlocked."""
     try:
         config = request.user.vault_config
     except VaultConfig.DoesNotExist:
@@ -85,14 +87,12 @@ def unlock(request):
 
 @login_required
 def lock(request):
-    """Lock the vault by removing the session flag."""
     request.session.pop("vault_unlocked", None)
     return redirect("safe:unlock")
 
 
 @login_required
 def upload_file(request):
-    """Encrypt and store an uploaded file."""
     if not request.session.get("vault_unlocked"):
         return redirect("safe:unlock")
 
@@ -100,29 +100,16 @@ def upload_file(request):
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             uploaded = request.FILES["file"]
-            vault_password = form.cleaned_data["vault_password"]
-
-            # Verify vault password before encrypting
-            try:
-                config = request.user.vault_config
-            except VaultConfig.DoesNotExist:
-                messages.error(request, "Najpierw ustaw hasło sejfu.")
-                return redirect("safe:set_password")
-
-            if not verify_vault_password(
-                vault_password,
-                bytes(config.password_hash),
-                bytes(config.password_salt),
-            ):
-                messages.error(request, "Nieprawidłowe hasło sejfu.")
-                return render(request, "safe/upload.html", {"form": form})
+            file_password = form.cleaned_data["file_password"]
 
             plaintext = uploaded.read()
             if len(plaintext) > MAX_UPLOAD_BYTES:
                 messages.error(request, "Plik jest za duży (max 50 MB).")
                 return render(request, "safe/upload.html", {"form": form})
 
-            ciphertext, salt, nonce = encrypt_file(vault_password, plaintext)
+            ciphertext, salt, nonce = encrypt_file(file_password, plaintext)
+            pw_hash, pw_salt = hash_file_password(file_password)
+            checksum = compute_plaintext_checksum(plaintext)
 
             SafeFile.objects.create(
                 user=request.user,
@@ -130,6 +117,9 @@ def upload_file(request):
                 encrypted_data=ciphertext,
                 salt=salt,
                 nonce=nonce,
+                file_password_hash=pw_hash,
+                file_password_salt=pw_salt,
+                plaintext_checksum=checksum,
                 file_size=len(plaintext),
             )
             messages.success(request, "Plik '{}' zostal zaszyfrowany i dodany do sejfu.".format(uploaded.name))
@@ -141,28 +131,31 @@ def upload_file(request):
 
 @login_required
 def download_file(request, file_id):
-    """Decrypt and serve a file for download."""
     if not request.session.get("vault_unlocked"):
         return redirect("safe:unlock")
 
     safe_file = get_object_or_404(SafeFile, id=file_id, user=request.user)
 
     if request.method == "POST":
-        form = VaultUnlockForm(request.POST)
+        form = DownloadFileForm(request.POST)
         if form.is_valid():
-            pw = form.cleaned_data["password"]
-            try:
-                config = request.user.vault_config
-            except VaultConfig.DoesNotExist:
-                raise Http404
+            file_password = form.cleaned_data["file_password"]
 
-            if not verify_vault_password(pw, bytes(config.password_hash), bytes(config.password_salt)):
-                messages.error(request, "Nieprawidłowe hasło sejfu.")
+            if safe_file.file_password_hash is None:
+                messages.error(request, "Ten plik nie ma przypisanego hasła — pobieranie niemożliwe.")
+                return redirect("safe:index")
+
+            if not verify_file_password(
+                file_password,
+                bytes(safe_file.file_password_hash),
+                bytes(safe_file.file_password_salt),
+            ):
+                messages.error(request, "Nieprawidłowe hasło pliku.")
                 return render(request, "safe/download_confirm.html", {"file": safe_file, "form": form})
 
             try:
                 plaintext = decrypt_file(
-                    pw,
+                    file_password,
                     bytes(safe_file.encrypted_data),
                     bytes(safe_file.salt),
                     bytes(safe_file.nonce),
@@ -174,20 +167,27 @@ def download_file(request, file_id):
                 )
                 return redirect("safe:index")
 
+            if safe_file.plaintext_checksum is not None:
+                if not verify_plaintext_checksum(plaintext, bytes(safe_file.plaintext_checksum)):
+                    messages.error(
+                        request,
+                        "BŁĄD SUMY KONTROLNEJ: Zawartość pliku nie zgadza się z oryginałem. Pobieranie anulowane."
+                    )
+                    return redirect("safe:index")
+
             mime_type, _ = mimetypes.guess_type(safe_file.original_name)
             response = HttpResponse(plaintext, content_type=mime_type or "application/octet-stream")
             response["Content-Disposition"] = f'attachment; filename="{safe_file.original_name}"'
             response["Content-Length"] = len(plaintext)
             return response
     else:
-        form = VaultUnlockForm()
+        form = DownloadFileForm()
 
     return render(request, "safe/download_confirm.html", {"file": safe_file, "form": form})
 
 
 @login_required
 def delete_file(request, file_id):
-    """Permanently delete an encrypted file."""
     if not request.session.get("vault_unlocked"):
         return redirect("safe:unlock")
 

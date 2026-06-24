@@ -1,10 +1,15 @@
 from django.test import TestCase
 
 from .crypto import (
+    ChecksumMismatch,
     TamperingDetected,
+    compute_plaintext_checksum,
     decrypt_file,
     encrypt_file,
+    hash_file_password,
     hash_vault_password,
+    verify_file_password,
+    verify_plaintext_checksum,
     verify_vault_password,
 )
 
@@ -12,7 +17,7 @@ from .crypto import (
 class CryptoUnitTests(TestCase):
 
     def test_encrypt_decrypt_roundtrip(self):
-        password = "TestPassword!2024"
+        password = "FilePassword!2024"
         plaintext = b"Hello, this is a secret file content."
         ciphertext, salt, nonce = encrypt_file(password, plaintext)
         recovered = decrypt_file(password, ciphertext, salt, nonce)
@@ -57,6 +62,35 @@ class CryptoUnitTests(TestCase):
         self.assertTrue(verify_vault_password(pw, hashed, salt))
         self.assertFalse(verify_vault_password("wrong", hashed, salt))
 
+    def test_file_password_hash_verify(self):
+        pw = "FilePass!42"
+        hashed, salt = hash_file_password(pw)
+        self.assertTrue(verify_file_password(pw, hashed, salt))
+        self.assertFalse(verify_file_password("wrong", hashed, salt))
+
+    def test_file_password_independent_from_vault_password(self):
+        vault_pw = "VaultMaster!1"
+        file_pw = "FileSecret!2"
+        v_hash, v_salt = hash_vault_password(vault_pw)
+        f_hash, f_salt = hash_file_password(file_pw)
+        self.assertFalse(verify_file_password(vault_pw, f_hash, f_salt))
+        self.assertFalse(verify_vault_password(file_pw, v_hash, v_salt))
+
+    def test_checksum_match(self):
+        data = b"Original plaintext content"
+        checksum = compute_plaintext_checksum(data)
+        self.assertTrue(verify_plaintext_checksum(data, checksum))
+
+    def test_checksum_mismatch_on_tampered_data(self):
+        data = b"Original plaintext content"
+        checksum = compute_plaintext_checksum(data)
+        tampered = b"Tampered plaintext content"
+        self.assertFalse(verify_plaintext_checksum(tampered, checksum))
+
+    def test_checksum_is_32_bytes(self):
+        checksum = compute_plaintext_checksum(b"any data")
+        self.assertEqual(len(checksum), 32)
+
     def test_binary_file_encryption(self):
         import os
         password = "BinaryTest"
@@ -68,7 +102,6 @@ class CryptoUnitTests(TestCase):
     def test_ciphertext_longer_than_plaintext(self):
         plaintext = b"Short text"
         ciphertext, salt, nonce = encrypt_file("pass", plaintext)
-        # GCM appends 16-byte auth tag
         self.assertEqual(len(ciphertext), len(plaintext) + 16)
 
     def test_salt_and_nonce_lengths(self):

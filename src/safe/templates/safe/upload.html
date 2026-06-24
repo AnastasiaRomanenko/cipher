@@ -6,8 +6,8 @@
 <div class="card card-narrow">
     <h2>Dodaj plik do sejfu</h2>
     <p class="muted" style="margin-bottom:20px;">
-        Plik zostanie zaszyfrowany lokalnie (AES-256-GCM) zanim trafi do bazy danych.
-        Hasło sejfu służy jednocześnie do weryfikacji tożsamości i generowania klucza.
+        Każdy plik jest szyfrowany własnym hasłem (AES-256-GCM). Bez tego hasła plik nie może być pobrany.
+        Zapamiętaj hasło — nie ma możliwości jego odzyskania.
     </p>
 
     <form method="post" enctype="multipart/form-data" novalidate>
@@ -25,13 +25,20 @@
         </div>
 
         <div class="form-group">
-            <label for="{{ form.vault_password.id_for_label }}">{{ form.vault_password.label }}</label>
-            <input class="form-control" type="password" name="{{ form.vault_password.html_name }}"
-                   id="{{ form.vault_password.id_for_label }}" autocomplete="current-password" required>
-            {% if form.vault_password.errors %}<div class="field-errors">{{ form.vault_password.errors }}</div>{% endif %}
+            <label for="{{ form.file_password.id_for_label }}">{{ form.file_password.label }}</label>
+            <input class="form-control" type="password" name="{{ form.file_password.html_name }}"
+                   id="{{ form.file_password.id_for_label }}" autocomplete="new-password" required>
+            {% if form.file_password.errors %}<div class="field-errors">{{ form.file_password.errors }}</div>{% endif %}
             <small class="muted">
-                Hasło jest używane do wygenerowania unikalnego klucza AES-256 dla tego pliku (PBKDF2, 600&thinsp;000 iteracji).
+                Unikalne hasło dla tego pliku. Klucz AES-256 jest generowany z jego skrótu (PBKDF2, 600&thinsp;000 iteracji).
             </small>
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.file_password_confirm.id_for_label }}">{{ form.file_password_confirm.label }}</label>
+            <input class="form-control" type="password" name="{{ form.file_password_confirm.html_name }}"
+                   id="{{ form.file_password_confirm.id_for_label }}" autocomplete="new-password" required>
+            {% if form.file_password_confirm.errors %}<div class="field-errors">{{ form.file_password_confirm.errors }}</div>{% endif %}
         </div>
 
         <div class="btn-row">

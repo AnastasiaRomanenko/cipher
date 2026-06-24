@@ -30,8 +30,10 @@ class SafeFile(models.Model):
     - encrypted_data holds AES-256-GCM ciphertext || 16-byte auth tag
     - salt is the per-file PBKDF2 salt (unique, random, 16 bytes)
     - nonce is the per-file AES-GCM nonce (unique, random, 12 bytes)
-    - salt and nonce live in the database; tampering with encrypted_data
-      without also forging the auth tag is computationally infeasible
+    - file_password_hash / file_password_salt are the PBKDF2 hash of the
+      per-file password used to verify the password before decryption
+    - plaintext_checksum is the SHA-256 of the original plaintext;
+      verified after decryption to detect any tampering in the DB
     """
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -42,6 +44,9 @@ class SafeFile(models.Model):
     encrypted_data = models.BinaryField()
     salt = models.BinaryField(max_length=16)
     nonce = models.BinaryField(max_length=12)
+    file_password_hash = models.BinaryField(null=True, blank=True)
+    file_password_salt = models.BinaryField(null=True, blank=True)
+    plaintext_checksum = models.BinaryField(max_length=32, null=True, blank=True)
     file_size = models.PositiveIntegerField(help_text="Original file size in bytes")
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
