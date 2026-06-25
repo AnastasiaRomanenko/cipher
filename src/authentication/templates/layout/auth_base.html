@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Szyfr24{% endblock %}</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f4f7fb;
+            --panel: #ffffff;
+            --ink: #132033;
+            --muted: #637086;
+            --line: #dbe3ee;
+            --primary: #146b63;
+            --primary-dark: #0e4d47;
+            --accent: #c58a1d;
+            --danger: #b3261e;
+            --success: #1c7c54;
+            --shadow: 0 22px 60px rgba(19, 32, 51, 0.14);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+            background:
+                radial-gradient(circle at 16% 12%, rgba(20, 107, 99, 0.16), transparent 26rem),
+                linear-gradient(135deg, #f7fbff 0%, var(--bg) 48%, #eef4f3 100%);
+            color: var(--ink);
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .auth-shell {
+            width: min(1080px, 100%);
+            min-height: 100vh;
+            margin: 0 auto;
+            padding: 40px 22px;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(320px, 460px);
+            gap: 46px;
+            align-items: center;
+        }
+
+        .brand-panel {
+            max-width: 520px;
+        }
+
+        .brand-mark {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            background: var(--primary);
+            color: #fff;
+            font-weight: 800;
+            letter-spacing: 0;
+            box-shadow: 0 12px 28px rgba(20, 107, 99, 0.22);
+        }
+
+        .brand-panel h1 {
+            margin: 22px 0 12px;
+            font-size: clamp(34px, 5vw, 58px);
+            line-height: 1.02;
+            letter-spacing: 0;
+        }
+
+        .brand-panel p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .security-notes {
+            margin-top: 28px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .security-note {
+            padding: 13px 15px;
+            border-left: 4px solid var(--accent);
+            background: rgba(255, 255, 255, 0.72);
+            border-radius: 8px;
+            color: #334156;
+            line-height: 1.45;
+        }
+
+        .auth-card {
+            background: var(--panel);
+            border: 1px solid rgba(219, 227, 238, 0.86);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 30px;
+        }
+
+        .auth-card h2 {
+            margin: 0 0 8px;
+            font-size: 25px;
+            line-height: 1.2;
+            letter-spacing: 0;
+        }
+
+        .auth-card .lead,
+        .box-msg,
+        .login-box-msg {
+            margin: 0 0 20px;
+            color: var(--muted);
+            line-height: 1.55;
+        }
+
+        .tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 22px;
+            padding: 4px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #f7f9fc;
+        }
+
+        .tab-button {
+            border: 0;
+            border-radius: 6px;
+            padding: 11px 12px;
+            background: transparent;
+            color: var(--muted);
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .tab-button.active {
+            color: var(--ink);
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(19, 32, 51, 0.08);
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-control {
+            width: 100%;
+            min-height: 46px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 11px 13px;
+            background: #fff;
+            color: var(--ink);
+            font: inherit;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(20, 107, 99, 0.15);
+            outline: none;
+        }
+
+        label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 4px 0 14px;
+            color: #334156;
+            line-height: 1.35;
+        }
+
+        input[type="checkbox"] {
+            width: 17px;
+            height: 17px;
+            accent-color: var(--primary);
+        }
+
+        .error,
+        .help-block,
+        .text-danger {
+            margin: 6px 0 0;
+            color: var(--danger);
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .actions {
+            display: grid;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            text-decoration: none;
+        }
+
+        .btn-primary,
+        .btn-success {
+            color: #fff;
+            background: var(--primary);
+        }
+
+        .btn-primary:hover,
+        .btn-success:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary,
+        .btn-default {
+            color: var(--ink);
+            background: #fff;
+            border-color: var(--line);
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        .g-recaptcha {
+            min-height: 78px;
+            margin: 4px 0 14px;
+        }
+
+        .message {
+            display: grid;
+            gap: 12px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            width: fit-content;
+            border-radius: 999px;
+            padding: 5px 10px;
+            background: rgba(28, 124, 84, 0.12);
+            color: var(--success);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        @media (max-width: 820px) {
+            .auth-shell {
+                grid-template-columns: 1fr;
+                gap: 28px;
+                padding: 28px 16px;
+                align-items: start;
+            }
+
+            .brand-panel h1 {
+                font-size: 36px;
+            }
+
+            .brand-panel p {
+                font-size: 16px;
+            }
+
+            .auth-card {
+                padding: 22px;
+            }
+        }
+    </style>
+    {% block head_extra %}{% endblock %}
+</head>
+<body>
+    <main class="auth-shell">
+        <section class="brand-panel" aria-label="Szyfr24">
+            <div class="brand-mark">S24</div>
+            <h1>Usługa szyfrowania Szyfr24</h1>
+            <p>Bezpieczny dostęp do konta, kodów weryfikacyjnych i narzędzi ochrony danych.</p>
+            <div class="security-notes">
+                <div class="security-note">Logowanie jest chronione dodatkową weryfikacją.</div>
+                <div class="security-note">Kody TOTP są ważne tylko przez krótki czas.</div>
+            </div>
+        </section>
+        <section class="auth-card">
+            {% block content %}{% endblock %}
+        </section>
+    </main>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

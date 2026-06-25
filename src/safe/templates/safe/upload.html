@@ -1,0 +1,50 @@
+{% extends "safe/base.html" %}
+
+{% block title %}Dodaj plik do sejfu | Szyfr24{% endblock %}
+
+{% block content %}
+<div class="card card-narrow">
+    <h2>Dodaj plik do sejfu</h2>
+    <p class="muted" style="margin-bottom:20px;">
+        Każdy plik jest szyfrowany własnym hasłem (AES-256-GCM). Bez tego hasła plik nie może być pobrany.
+        Zapamiętaj hasło — nie ma możliwości jego odzyskania.
+    </p>
+
+    <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="field-errors" style="margin-bottom:12px;">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="form-group">
+            <label for="{{ form.file.id_for_label }}">{{ form.file.label }}</label>
+            <input class="form-control" type="file" name="{{ form.file.html_name }}"
+                   id="{{ form.file.id_for_label }}" required>
+            {% if form.file.errors %}<div class="field-errors">{{ form.file.errors }}</div>{% endif %}
+            <small class="muted">Maksymalny rozmiar: 50 MB</small>
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.file_password.id_for_label }}">{{ form.file_password.label }}</label>
+            <input class="form-control" type="password" name="{{ form.file_password.html_name }}"
+                   id="{{ form.file_password.id_for_label }}" autocomplete="new-password" required>
+            {% if form.file_password.errors %}<div class="field-errors">{{ form.file_password.errors }}</div>{% endif %}
+            <small class="muted">
+                Unikalne hasło dla tego pliku. Klucz AES-256 jest generowany z jego skrótu (PBKDF2, 600&thinsp;000 iteracji).
+            </small>
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.file_password_confirm.id_for_label }}">{{ form.file_password_confirm.label }}</label>
+            <input class="form-control" type="password" name="{{ form.file_password_confirm.html_name }}"
+                   id="{{ form.file_password_confirm.id_for_label }}" autocomplete="new-password" required>
+            {% if form.file_password_confirm.errors %}<div class="field-errors">{{ form.file_password_confirm.errors }}</div>{% endif %}
+        </div>
+
+        <div class="btn-row">
+            <button class="btn btn-primary" type="submit">Zaszyfruj i dodaj</button>
+            <a class="btn btn-secondary" href="{% url 'safe:index' %}">Anuluj</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

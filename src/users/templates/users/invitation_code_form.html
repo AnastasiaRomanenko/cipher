@@ -1,0 +1,35 @@
+{% extends "layout/auth_base.html" %}
+
+{% block title %}Konfiguracja aplikacji uwierzytelniającej | Szyfr24{% endblock %}
+
+{% block content %}
+<h2>Skonfiguruj aplikację uwierzytelniającą</h2>
+<p class="lead">
+    Aby dokończyć zaproszenie, zainstaluj aplikację Google Authenticator na telefonie
+    i zeskanuj poniższy kod QR. Następnie wpisz 6-cyfrowy kod wyświetlany w aplikacji.
+</p>
+
+<div class="totp-enroll">
+    <img src="{{ qr_data_uri }}" alt="Kod QR do aplikacji uwierzytelniającej" />
+    <p class="totp-manual">
+        Nie możesz zeskanować? Wpisz klucz ręcznie:
+        <code>{{ manual_key }}</code>
+    </p>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    {% for error in form.non_field_errors %}
+        <p class="error">{{ error }}</p>
+    {% endfor %}
+    <div class="form-group">
+        {{ form.code }}
+        {% for error in form.code.errors %}
+            <p class="error">{{ error }}</p>
+        {% endfor %}
+    </div>
+    <div class="actions">
+        <button type="submit" class="btn btn-primary btn-block">Potwierdź zaproszenie</button>
+    </div>
+</form>
+{% endblock %}

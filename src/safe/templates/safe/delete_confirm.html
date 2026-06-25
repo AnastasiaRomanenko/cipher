@@ -1,0 +1,22 @@
+{% extends "safe/base.html" %}
+
+{% block title %}Usuń plik | Szyfr24{% endblock %}
+
+{% block content %}
+<div class="card card-narrow">
+    <h2>Potwierdzenie usunięcia</h2>
+    <p style="margin-bottom:20px;">
+        Czy na pewno chcesz <strong>trwale usunąć</strong> plik:
+        <br><strong>{{ file.original_name }}</strong>?
+        <br><small class="muted">Operacja jest nieodwracalna.</small>
+    </p>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="btn-row">
+            <button class="btn btn-danger" type="submit">Usuń trwale</button>
+            <a class="btn btn-secondary" href="{% url 'safe:index' %}">Anuluj</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

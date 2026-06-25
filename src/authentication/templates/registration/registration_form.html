@@ -1,0 +1,87 @@
+{% extends "layout/auth_base.html" %}
+
+{% block title %}Rejestracja | Szyfr24{% endblock %}
+
+{% block head_extra %}
+<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer></script>
+{% endblock %}
+
+{% block content %}
+<h2>Utwórz konto</h2>
+<p class="lead">Załóż konto w usłudze szyfrowania danych.</p>
+
+<form id="registration-form" method="post">
+    {% csrf_token %}
+    {% for error in form.non_field_errors %}
+        <p class="error">{{ error }}</p>
+    {% endfor %}
+    <div class="form-group">
+        {{ form.first_name }}
+        {% for error in form.first_name.errors %}
+            <p class="error">{{ error }}</p>
+        {% endfor %}
+    </div>
+    <div class="form-group">
+        {{ form.last_name }}
+        {% for error in form.last_name.errors %}
+            <p class="error">{{ error }}</p>
+        {% endfor %}
+    </div>
+    <div class="form-group">
+        {{ form.email }}
+        {% for error in form.email.errors %}
+            <p class="error">{{ error }}</p>
+        {% endfor %}
+    </div>
+    <div class="form-group">
+        {{ form.password1 }}
+        {% for error in form.password1.errors %}
+            <p class="error">{{ error }}</p>
+        {% endfor %}
+        {% include "partials/password_strength_meter.html" with field_id="id_password1" %}
+    </div>
+    <div class="form-group">
+        {{ form.password2 }}
+        {% for error in form.password2.errors %}
+            <p class="error">{{ error }}</p>
+        {% endfor %}
+    </div>
+    <label>
+        <input type="checkbox" name="accept_terms_and_conditions" value="1" required>
+        Akceptuję politykę prywatności usługi Szyfr24
+    </label>
+    {% for error in form.accept_terms_and_conditions.errors %}
+        <p class="error">{{ error }}</p>
+    {% endfor %}
+    <div id="g-recaptcha" class="g-recaptcha"></div>
+    <div class="actions">
+        <button type="submit" class="btn btn-primary btn-block">Zarejestruj się</button>
+        <a href="{% url 'authentication:login' %}" class="btn btn-secondary btn-block">Zaloguj się</a>
+        <a href="{% url 'authentication:password_reset' %}" class="btn btn-secondary btn-block">Nie pamiętasz hasła?</a>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let widget = null;
+    let submitting = false;
+
+    function onloadCallback() {
+        widget = grecaptcha.render("g-recaptcha", { sitekey: "{{ site_key }}" });
+    }
+
+    document.getElementById("registration-form").addEventListener("submit", function (event) {
+        event.preventDefault();
+        if (submitting) return;
+        const response = widget === null ? "" : grecaptcha.getResponse(widget);
+        if (!response) {
+            alert("Potwierdź, że nie jesteś robotem");
+            return;
+        }
+        submitting = true;
+        this.querySelector('button[type="submit"]').disabled = true;
+        this.submit();
+    });
+</script>
+{% endblock %}

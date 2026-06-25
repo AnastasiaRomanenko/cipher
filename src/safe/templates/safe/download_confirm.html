@@ -1,0 +1,33 @@
+{% extends "safe/base.html" %}
+
+{% block title %}Pobierz plik | Szyfr24{% endblock %}
+
+{% block content %}
+<div class="card card-narrow">
+    <h2>Pobierz zaszyfrowany plik</h2>
+    <p class="muted" style="margin-bottom:8px;">
+        Plik: <strong>{{ file.original_name }}</strong>
+        &nbsp;({{ file.file_size }} B, dodano {{ file.uploaded_at|date:"d.m.Y H:i" }})
+    </p>
+    <p class="muted" style="margin-bottom:20px;">
+        Podaj hasło przypisane do tego pliku. Po odszyfrowaniu zostanie sprawdzona suma kontrolna (SHA-256) —
+        jeśli plik był modyfikowany, pobieranie zostanie anulowane.
+    </p>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="{{ form.file_password.id_for_label }}">{{ form.file_password.label }}</label>
+            <input class="form-control" type="password" name="{{ form.file_password.html_name }}"
+                   id="{{ form.file_password.id_for_label }}" autocomplete="current-password" autofocus required>
+            {% if form.file_password.errors %}<div class="field-errors">{{ form.file_password.errors }}</div>{% endif %}
+        </div>
+
+        <div class="btn-row">
+            <button class="btn btn-primary" type="submit">Odszyfruj i pobierz</button>
+            <a class="btn btn-secondary" href="{% url 'safe:index' %}">Anuluj</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

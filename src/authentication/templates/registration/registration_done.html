@@ -1,0 +1,12 @@
+{% extends "layout/auth_base.html" %}
+
+{% block title %}Kod aktywacyjny | Szyfr24{% endblock %}
+
+{% block content %}
+<h2>Sprawdź pocztę</h2>
+<div class="message">
+    <p class="box-msg">Wysłaliśmy kod TOTP do aktywacji konta w usłudze szyfrowania.</p>
+    <p class="box-msg">Jeśli wiadomość nie dotarła, sprawdź podany adres email oraz folder „Spam”.</p>
+    <a href="{% url 'authentication:registration_complete' %}" class="btn btn-primary btn-block">Wpisz kod TOTP</a>
+</div>
+{% endblock %}

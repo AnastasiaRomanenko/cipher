@@ -1,0 +1,52 @@
+{% extends "users/panel_base.html" %}
+
+{% block title %}Profil użytkownika | Szyfr24{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Profil użytkownika</h1>
+        <p class="muted">Szczegóły konta w usłudze szyfrowania.</p>
+    </div>
+    <a href="{% url 'users:user_update' managed_user.id %}" class="btn btn-primary">Edytuj profil</a>
+</div>
+
+<section class="card">
+    <div class="table-wrap">
+        <table>
+            <tbody>
+                <tr>
+                    <th>Użytkownik</th>
+                    <td>{{ managed_user.get_full_name|default:"-" }}</td>
+                </tr>
+                <tr>
+                    <th>Email</th>
+                    <td>{{ managed_user.email|default:"-" }}</td>
+                </tr>
+                <tr>
+                    <th>Status</th>
+                    <td>
+                        {% if managed_user.is_active %}
+                            <span class="badge badge-success">Aktywny</span>
+                        {% else %}
+                            <span class="badge badge-warning">Oczekuje</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Uprawnienia</th>
+                    <td>
+                        {% if managed_user.is_superuser %}
+                            Operator główny
+                        {% elif managed_user.is_staff %}
+                            Operator
+                        {% else %}
+                            Użytkownik
+                        {% endif %}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

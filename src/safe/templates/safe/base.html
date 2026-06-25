@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Sejf | Szyfr24{% endblock %}</title>
+    <style>
+        :root {
+            --bg: #f4f7fb;
+            --panel: #ffffff;
+            --ink: #132033;
+            --muted: #637086;
+            --line: #dbe3ee;
+            --primary: #146b63;
+            --primary-dark: #0e4d47;
+            --danger: #b3261e;
+            --success: #1c7c54;
+            --warning: #9a6500;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--bg); color: var(--ink);
+        }
+        a { color: var(--primary); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .topbar { background: #fff; border-bottom: 1px solid var(--line); }
+        .topbar-inner, .page {
+            width: min(1100px, 100%); margin: 0 auto; padding: 0 22px;
+        }
+        .topbar-inner {
+            min-height: 64px; display: flex; align-items: center;
+            justify-content: space-between; gap: 16px;
+        }
+        .brand { display: inline-flex; align-items: center; gap: 12px; color: var(--ink); font-weight: 800; }
+        .brand-mark {
+            width: 38px; height: 38px; border-radius: 10px;
+            display: grid; place-items: center;
+            background: var(--primary); color: #fff; font-size: 13px;
+        }
+        .topbar-nav { display: flex; gap: 10px; align-items: center; }
+        .page { padding-top: 28px; padding-bottom: 44px; }
+        .page-header { margin-bottom: 22px; }
+        h1 { margin: 0 0 6px; font-size: 28px; }
+        h2 { margin: 0 0 16px; font-size: 22px; }
+        .muted { margin: 0; color: var(--muted); line-height: 1.5; }
+        .card {
+            background: var(--panel); border: 1px solid var(--line);
+            border-radius: 10px; box-shadow: 0 8px 24px rgba(19,32,51,0.07);
+            padding: 28px;
+        }
+        .card-narrow { max-width: 480px; margin: 40px auto; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; margin-bottom: 7px; color: #334156; font-weight: 700; }
+        .form-control {
+            width: 100%; min-height: 44px; border: 1px solid var(--line);
+            border-radius: 8px; padding: 10px 12px; font: inherit;
+        }
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(20,107,99,0.14); outline: none;
+        }
+        .field-errors { margin: 5px 0 0; color: var(--danger); font-size: 14px; }
+        .btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-height: 40px; border: 1px solid transparent; border-radius: 8px;
+            padding: 8px 18px; font: inherit; font-weight: 700;
+            cursor: pointer; text-align: center; text-decoration: none;
+        }
+        .btn:hover { text-decoration: none; }
+        .btn-primary { color: #fff; background: var(--primary); }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-secondary { color: var(--ink); background: #fff; border-color: var(--line); }
+        .btn-secondary:hover { background: var(--bg); }
+        .btn-danger { color: #fff; background: var(--danger); }
+        .btn-danger:hover { background: #8c1e18; }
+        .btn-sm { min-height: 32px; padding: 4px 12px; font-size: 13px; }
+        .messages { display: grid; gap: 10px; margin-bottom: 20px; }
+        .msg { border-radius: 8px; padding: 10px 14px; }
+        .msg-success { background: rgba(28,124,84,0.09); border: 1px solid rgba(28,124,84,0.22); color: #1a5e3e; }
+        .msg-error   { background: rgba(179,38,30,0.09); border: 1px solid rgba(179,38,30,0.25); color: var(--danger); font-weight: 700; }
+        .msg-info    { background: rgba(20,107,99,0.07); border: 1px solid rgba(20,107,99,0.2); color: var(--primary-dark); }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 580px; }
+        th, td { padding: 12px 14px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+        th { font-size: 12px; text-transform: uppercase; letter-spacing: .03em; background: #f8fafc; color: #334156; }
+        tr:last-child td { border-bottom: 0; }
+        .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .badge {
+            display: inline-flex; border-radius: 999px;
+            padding: 3px 10px; font-size: 12px; font-weight: 700;
+        }
+        .badge-lock { background: rgba(20,107,99,0.12); color: var(--primary-dark); }
+        .badge-size { background: rgba(19,32,51,0.07); color: var(--muted); }
+        .info-box {
+            background: rgba(20,107,99,0.06); border: 1px solid rgba(20,107,99,0.18);
+            border-radius: 8px; padding: 14px 16px; font-size: 14px; color: #1a5540; margin-bottom: 22px;
+        }
+        .info-box ul { margin: 6px 0 0 0; padding-left: 18px; }
+        .info-box li { margin-bottom: 4px; }
+        .empty-state { text-align: center; padding: 48px 24px; color: var(--muted); }
+        .empty-state p { margin: 0 0 20px; font-size: 16px; }
+        @media (max-width: 700px) {
+            .topbar-inner, .page { padding-left: 14px; padding-right: 14px; }
+            .topbar-inner { flex-direction: column; align-items: flex-start; padding-top: 12px; padding-bottom: 12px; }
+        }
+    </style>
+    {% block head_extra %}{% endblock %}
+</head>
+<body>
+<header class="topbar">
+    <div class="topbar-inner">
+        <a class="brand" href="{% url 'safe:index' %}">
+            <span class="brand-mark">🔒</span>
+            <span>Sejf | Szyfr24</span>
+        </a>
+        <nav class="topbar-nav">
+            <a class="btn btn-secondary btn-sm" href="{% url 'authentication:service_home' %}">Panel</a>
+            {% if request.session.vault_unlocked %}
+                <a class="btn btn-secondary btn-sm" href="{% url 'safe:lock' %}">Zablokuj sejf</a>
+            {% endif %}
+            <form method="post" action="{% url 'authentication:logout' %}">
+                {% csrf_token %}
+                <button class="btn btn-secondary btn-sm" type="submit">Wyloguj</button>
+            </form>
+        </nav>
+    </div>
+</header>
+<main class="page">
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="msg {% if message.tags == 'error' %}msg-error{% elif message.tags == 'success' %}msg-success{% else %}msg-info{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+</main>
+</body>
+</html>

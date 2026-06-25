@@ -1,0 +1,72 @@
+{% extends "safe/base.html" %}
+
+{% block title %}Sejf – moje pliki | Szyfr24{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Mój zaszyfrowany sejf</h1>
+        <p class="muted">Wszystkie pliki są szyfrowane algorytmem AES-256-GCM z kluczem opartym na Twoim haśle.</p>
+    </div>
+    <a class="btn btn-primary" href="{% url 'safe:upload' %}">+ Dodaj plik</a>
+</div>
+
+<div class="info-box">
+    <strong>Bezpiecze&#324;stwo sejfu:</strong>
+    <ul>
+        <li>Szyfrowanie: <strong>AES-256-GCM</strong> — każdy plik ma unikalny wektor inicjujący (IV/nonce)</li>
+        <li>Klucz: <strong>PBKDF2-HMAC-SHA256</strong> z 600&thinsp;000 iteracjami, unikalną solą na plik</li>
+        <li>Integralność: tag uwierzytelnienia GCM (16 B) — każda zmiana pliku zostanie wykryta</li>
+    </ul>
+</div>
+
+<div class="card">
+    {% if files %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nazwa pliku</th>
+                    <th>Rozmiar</th>
+                    <th>Dodano</th>
+                    <th>Akcje</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for f in files %}
+                <tr>
+                    <td>
+                        <span class="badge badge-lock">AES-GCM</span>
+                        &nbsp;{{ f.original_name }}
+                    </td>
+                    <td>
+                        <span class="badge badge-size">
+                            {% if f.file_size < 1024 %}
+                                {{ f.file_size }} B
+                            {% elif f.file_size < 1048576 %}
+                                {{ f.file_size|floatformat:0 }} B
+                            {% else %}
+                                {{ f.file_size }} B
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td>{{ f.uploaded_at|date:"d.m.Y H:i" }}</td>
+                    <td>
+                        <div class="actions">
+                            <a class="btn btn-primary btn-sm" href="{% url 'safe:download' f.id %}">Pobierz</a>
+                            <a class="btn btn-danger btn-sm" href="{% url 'safe:delete' f.id %}">Usuń</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>Sejf jest pusty. Dodaj pierwszy plik!</p>
+        <a class="btn btn-primary" href="{% url 'safe:upload' %}">Dodaj plik</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
